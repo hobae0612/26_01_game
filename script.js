@@ -57,6 +57,23 @@ let leftTotalInputs = 0;
 let rightTotalInputs = 0;
 
 let timerInterval = null;
+
+let isAppMode = false;
+let lastTriggeredNode = null;
+let isDragging = false;
+
+function detectEnvironment() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('env') === 'app') return true;
+    if (params.get('env') === 'web') return false;
+
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    // Detect Android WebView or iOS WKWebView
+    if (ua.includes('wv') || (ua.includes('Android') && ua.includes('Version/'))) return true;
+    if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua)) return true;
+    return false;
+}
+isAppMode = detectEnvironment();
 // Variables removed for simultaneous start
 
 // ==========================================
@@ -294,10 +311,21 @@ function rebuildNodes(container, prefix, count, cssClasses, svgHtml) {
             e.stopPropagation();
             if (!isPlaying) return;
             const mappedKey = prefix === 'l' ? leftSequence[i] : rightSequence[i];
-            handleGameInput(mappedKey);
+            
+            if (isAppMode) {
+                if (lastTriggeredNode !== node) {
+                    lastTriggeredNode = node;
+                    handleGameInput(mappedKey);
+                }
+            } else {
+                handleGameInput(mappedKey);
+            }
         };
         node.addEventListener('touchstart', handleInteraction, {passive: false});
-        node.addEventListener('click', handleInteraction);
+        node.addEventListener('mousedown', handleInteraction); // Fallback for drag testing
+        if (!isAppMode) {
+            node.addEventListener('click', handleInteraction);
+        }
 
         container.appendChild(node);
     }
@@ -326,11 +354,17 @@ function updateInstructionsUI() {
     // Update node labels (count depends on current sequences)
     for(let i = 0; i < leftSequence.length; i++) {
         const node = document.getElementById(`node-l${i+1}`);
-        if(node) node.innerText = formatKeyName(leftSequence[i]);
+        if(node) {
+            node.innerText = formatKeyName(leftSequence[i]);
+            node.dataset.key = leftSequence[i];
+        }
     }
     for(let i = 0; i < rightSequence.length; i++) {
         const node = document.getElementById(`node-r${i+1}`);
-        if(node) node.innerText = formatKeyName(rightSequence[i]);
+        if(node) {
+            node.innerText = formatKeyName(rightSequence[i]);
+            node.dataset.key = rightSequence[i];
+        }
     }
 }
 
@@ -903,6 +937,40 @@ function gameOver(reason) {
     setTimeout(() => {
         openModal('game-over-modal');
     }, 500);
+}
+
+// ==========================================
+// Drag & Swipe Interaction (App Mode)
+// ==========================================
+document.addEventListener('touchstart', () => { isDragging = true; }, {passive: true});
+document.addEventListener('mousedown', () => { isDragging = true; });
+document.addEventListener('touchend', () => { isDragging = false; lastTriggeredNode = null; });
+document.addEventListener('mouseup', () => { isDragging = false; lastTriggeredNode = null; });
+
+document.addEventListener('touchmove', (e) => {
+    if (!isAppMode || !isDragging || !isPlaying) return;
+    e.preventDefault(); // Prevent scrolling while dragging in app mode
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    handleHoveredElement(el);
+}, {passive: false});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isAppMode || !isDragging || !isPlaying) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    handleHoveredElement(el);
+});
+
+function handleHoveredElement(el) {
+    if (el && el.classList.contains('node')) {
+        if (el !== lastTriggeredNode) {
+            lastTriggeredNode = el;
+            const mappedKey = el.dataset.key;
+            if (mappedKey) {
+                handleGameInput(mappedKey);
+            }
+        }
+    }
 }
 
 window.addEventListener('keydown', (e) => {

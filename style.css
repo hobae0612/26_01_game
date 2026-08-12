@@ -332,15 +332,33 @@ body {
 }
 
 .side-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     width: 100%;
+    height: 100%;
 }
 
 .side-content h2 {
+    order: 1;
     font-size: 2rem;
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.side-content .instructions {
+    order: 2;
+}
+
+.side-content .shape-container {
+    order: 3;
+}
+
+.side-content .status-text {
+    order: 4;
 }
 
 .left-side h2 {
@@ -1196,18 +1214,23 @@ body {
 /* ========================================== */
 @media (max-width: 1024px) {
     .game-area {
-        flex-direction: column !important;
-        align-items: center;
-        justify-content: center;
+        flex-direction: row !important; /* side by side for both portrait and landscape */
     }
     .split {
-        width: 100%;
+        width: 50%;
         min-height: auto;
-        padding: 10px;
+        padding: 5px;
     }
     .shape-container {
-        transform: scale(0.85);
+        transform: scale(0.65);
         margin: 0 auto;
+    }
+    .side-content h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0;
+    }
+    .instructions, .status-text {
+        display: none; /* Hide extra text to match clean mockup */
     }
     .top-stats-bar {
         padding: 10px 20px;
@@ -1229,7 +1252,7 @@ body {
         font-size: 0.8rem;
     }
     .stat-inline-val {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
     .game-title {
         font-size: 2.5rem;
@@ -1249,12 +1272,30 @@ body {
 
 @media (max-width: 600px) {
     .shape-container {
-        transform: scale(0.7);
+        transform: scale(0.55);
     }
     .top-stats-bar {
         gap: 10px;
     }
     .game-title {
         font-size: 2rem;
+    }
+    .side-content h2 {
+        font-size: 1rem;
+    }
+}
+
+/* Landscape orientation for mobile (labels at bottom) */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .side-content h2 {
+        order: 5;
+        margin-top: 10px;
+    }
+    .shape-container {
+        order: 1;
+        transform: scale(0.45); /* Scale down more to fit height */
+    }
+    .top-stats-bar {
+        padding: 5px 20px;
     }
 }
