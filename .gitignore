@@ -1,0 +1,9 @@
+node_modules/
+.firebase/
+www/
+android/capacitor/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+.DS_Store
+*.log

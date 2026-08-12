@@ -1,0 +1,19 @@
+{
+  "name": "aekong-game",
+  "version": "1.0.0",
+  "description": "Android game using Capacitor",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/core": "^8.4.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^7.6.6"
+  }
+}

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title data-i18n="title">인지능력 향상 게임</title>
+    <link rel="stylesheet" href="style.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Lobby Screen -->
+    <div id="lobby-screen" class="lobby-container">
+        <h1 class="game-title" data-i18n="title">인지능력 향상 게임</h1>
+        <div class="lobby-menu">
+            <button id="btn-start-game" class="glow-on-hover menu-btn" data-i18n="btn_start">게임시작</button>
+            <button id="btn-how-to-play" class="glow-on-hover menu-btn" data-i18n="btn_how_to_play">게임방법</button>
+            <button id="btn-ranking" class="glow-on-hover menu-btn" data-i18n="btn_ranking">랭킹보기</button>
+            <button id="btn-options" class="glow-on-hover menu-btn" data-i18n="btn_options">옵션</button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="game-container hidden" id="main-game">
+
+        <!-- ── Stats Bar: SCORE: 120   TIME: 29 ── -->
+        <div class="top-stats-bar">
+            <div class="top-nav-btns">
+                <button class="icon-btn" onclick="goToLobby()" title="Lobby" data-i18n-title="btn_lobby">
+                    <img src="img/home.png" alt="Lobby" class="nav-img">
+                </button>
+                <button class="icon-btn" onclick="startGame()" title="Restart" data-i18n-title="btn_restart">
+                    <img src="img/refresh.png" alt="Restart" class="nav-img">
+                </button>
+            </div>
+            <div class="stat-inline">
+                <span class="stat-inline-label" data-i18n="score">SCORE</span>
+                <span class="stat-inline-sep">:</span>
+                <span class="stat-inline-val" id="score">0</span>
+            </div>
+            <div class="stat-inline">
+                <span class="stat-inline-label" data-i18n="time">TIME</span>
+                <span class="stat-inline-sep">:</span>
+                <span class="stat-inline-val" id="time">60</span>
+            </div>
+        </div>
+
+        <!-- ── Divider ── -->
+        <div class="stats-divider"></div>
+
+        <!-- ── Game Area: left | right ── -->
+        <div class="game-area">
+            <!-- Left Side: Square (Left Hand) -->
+            <div class="split left-side">
+                <div class="side-content">
+                    <h2 id="left-hand-label" data-i18n="left_hand">왼손 (네모)</h2>
+                    <div class="instructions" id="left-inst">R, E, D, F <span data-i18n="inst_repeat">순서대로 반복</span></div>
+                    <div class="shape-container square-container" id="left-shape-container">
+                        <div class="node top-right" id="node-l1">R</div>
+                        <div class="node top-left" id="node-l2">E</div>
+                        <div class="node bottom-left" id="node-l3">D</div>
+                        <div class="node bottom-right" id="node-l4">F</div>
+                        <svg class="lines" viewBox="0 0 100 100">
+                            <path class="shape-path" id="square-path" d="M 80 20 L 20 20 L 20 80 L 80 80 Z" fill="none" stroke-width="4" />
+                            <path class="shape-progress" id="square-progress" d="M 80 20 L 20 20 L 20 80 L 80 80 Z"
+                                fill="none" stroke-width="4" stroke-dasharray="240" stroke-dashoffset="240" />
+                        </svg>
+                    </div>
+                    <div class="status-text" id="left-status" data-i18n="waiting">대기 중...</div>
+                </div>
+            </div>
+
+            <!-- Right Side: Triangle (Right Hand) -->
+            <div class="split right-side">
+                <div class="side-content">
+                    <h2 id="right-hand-label" data-i18n="right_hand">오른손 (세모)</h2>
+                    <div class="instructions" id="right-inst">위, 왼쪽, 오른쪽 <span data-i18n="inst_repeat">순서대로 반복</span></div>
+                    <div class="shape-container triangle-container" id="right-shape-container">
+                        <div class="node top" id="node-r1">↑</div>
+                        <div class="node bottom-left-tri" id="node-r2">←</div>
+                        <div class="node bottom-right-tri" id="node-r3">→</div>
+                        <svg class="lines" viewBox="0 0 100 100">
+                            <path class="shape-path" id="triangle-path" d="M 50 20 L 20 80 L 80 80 Z" fill="none" stroke-width="4" />
+                            <path class="shape-progress" id="triangle-progress" d="M 50 20 L 20 80 L 80 80 Z" fill="none"
+                                stroke-width="4" stroke-dasharray="220" stroke-dashoffset="220" />
+                        </svg>
+                    </div>
+                    <div class="status-text" id="right-status" data-i18n="waiting">대기 중...</div>
+                </div>
+            </div>
+        </div><!-- /game-area -->
+
+    </div><!-- /main-game -->
+
+    <!-- Modals -->
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content glass-effect">
+            <h1 data-i18n="game_over">GAME OVER</h1>
+            <p id="game-over-reason" data-i18n="reason_here">이유가 여기에 표시됩니다.</p>
+            <div class="final-score" style="margin: 20px 0;"><span data-i18n="final_score">최종 점수: </span><span
+                    id="final-score-value">0</span></div>
+
+            <div class="ranking-form" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <select id="player-nation" class="custom-input" style="width: 110px;">
+                        <option value="KR">한국</option>
+                        <option value="US">USA</option>
+                        <option value="JP">日本</option>
+                        <option value="CN">中国</option>
+                        <option value="GB">UK</option>
+                        <option value="DE">Deutschland</option>
+                        <option value="FR">France</option>
+                        <option value="IT">Italia</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="BR">Brasil</option>
+                        <option value="IN">भारत</option>
+                        <option value="RU">Россия</option>
+                        <option value="MX">México</option>
+                        <option value="ES">España</option>
+                        <option value="ID">Indonesia</option>
+                        <option value="NL">Nederland</option>
+                        <option value="SA">السعودية</option>
+                        <option value="TR">Türkiye</option>
+                        <option value="CH">Schweiz</option>
+                        <option value="SE">Sverige</option>
+                        <option value="PL">Polska</option>
+                        <option value="AR">Argentina</option>
+                        <option value="BE">België</option>
+                        <option value="TH">ไทย</option>
+                        <option value="AT">Österreich</option>
+                        <option value="IR">ایران</option>
+                        <option value="AE">الإمارات</option>
+                        <option value="NO">Norge</option>
+                        <option value="IL">ישראל</option>
+                        <option value="IE">Éire</option>
+                        <option value="PH">Pilipinas</option>
+                    </select>
+                    <input type="text" id="player-nickname" class="custom-input" placeholder="8글자 이내"
+                        data-i18n="placeholder_nickname" maxlength="8" style="width: 150px; text-align: center;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                <button id="restart-btn" class="icon-btn" title="Restart" data-i18n-title="btn_restart" onclick="startGame()">
+                    <img src="img/refresh.png" alt="Restart" data-i18n-alt="btn_restart" class="btn-icon-img">
+                </button>
+                <button id="save-ranking-btn" class="glow-on-hover" style="width: 120px; height: 45px; margin-top: 0;"
+                    data-i18n="save">저장</button>
+                <button id="go-lobby-btn" class="icon-btn" title="Lobby" data-i18n-title="btn_lobby" onclick="goToLobby()">
+                    <img src="img/home.png" alt="Lobby" data-i18n-alt="btn_lobby" class="btn-icon-img">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal (How to play) -->
+    <div id="rules-modal" class="modal hidden">
+        <div class="modal-content glass-effect" style="max-width: 700px;">
+            <button class="close-btn" data-target="rules-modal">&times;</button>
+            <h1 data-i18n="title">인지능력 향상 게임</h1>
+            <p style="margin-bottom: 30px; font-size: 1.2rem;" data-i18n="modal_how_to_play">양손을 사용하여 각기 다른 도형을 동시에
+                그려보세요!</p>
+
+            <div class="hands-illustration">
+                <div class="hand-side left-hand-ill">
+                    <svg viewBox="0 0 24 24" width="80" height="80" stroke="var(--accent-cyan)" stroke-width="1.5" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+                        <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+                        <path d="M10 10.5V5a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5"></path>
+                        <path
+                            d="M6 13.5v-2a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6c0 4.5 3.5 8 8 8h1.5c4.5 0 8-3.5 8-8V11a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2">
+                        </path>
+                    </svg>
+                    <h3 style="color: var(--accent-cyan); margin-bottom: 10px;" data-i18n="left_hand">왼손 (세모)</h3>
+                    <p><strong id="rule-left-keys">R &rarr; E &rarr; D &rarr; F</strong></p>
+                    <p style="font-size: 0.9rem; margin-top: 5px;" data-i18n="inst_repeat_input">순서대로 반복 입력</p>
+                </div>
+
+                <div class="hand-side right-hand-ill">
+                    <svg viewBox="0 0 24 24" width="80" height="80" stroke="var(--accent-magenta)" stroke-width="1.5" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                        <path d="M6 11V6a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v2"></path>
+                        <path d="M10 10V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v2"></path>
+                        <path d="M14 10.5V5a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v5"></path>
+                        <path
+                            d="M18 13.5v-2a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v6c0 4.5-3.5 8-8 8H10.5c-4.5 0-8-3.5-8-8V11a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2">
+                        </path>
+                    </svg>
+                    <h3 style="color: var(--accent-magenta); margin-bottom: 10px;" data-i18n="right_hand">오른손 (네모)</h3>
+                    <p><strong id="rule-right-keys">위(↑) &rarr; 왼쪽(←) &rarr; 오른쪽(→)</strong></p>
+                    <p style="font-size: 0.9rem; margin-top: 5px;" data-i18n="inst_repeat_input">순서대로 반복 입력</p>
+                </div>
+            </div>
+
+            <div class="rules-box">
+                <p>
+                    <strong data-i18n="modal_important_rules">❗ 중요 규칙 ❗</strong><br><br>
+                    <span data-i18n="rule_1">1. 정해진 순서가 틀리거나 관계없는 키를 누르면 즉시 <strong>게임 오버</strong>됩니다.</span><br>
+                    <span data-i18n="rule_2">2. 게임 진행 중 한 손만 연속으로 움직이면 <strong>게임 오버</strong>됩니다.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking Modal -->
+    <div id="ranking-modal" class="modal hidden">
+        <div class="modal-content glass-effect" style="max-width: 600px;">
+            <button class="close-btn" data-target="ranking-modal">&times;</button>
+            <h1 data-i18n="rank_title">RANKING</h1>
+            <div class="table-container">
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="rank_no">순위</th>
+                            <th data-i18n="rank_nation">국적</th>
+                            <th data-i18n="rank_nickname">닉네임</th>
+                            <th data-i18n="rank_score">스코어</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-tbody">
+                        <!-- Rankings will be injected here via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be injected here via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Options Modal -->
+    <div id="options-modal" class="modal hidden">
+        <div class="modal-content glass-effect options-modal-content">
+            <button class="close-btn" data-target="options-modal">&times;</button>
+            <h1 style="text-align: center; margin-bottom: 16px;" data-i18n="options_title">OPTIONS</h1>
+
+            <!-- Tab Bar -->
+            <div class="options-tab-bar">
+                <button class="options-tab active" data-tab="general" data-i18n="tab_general">일반</button>
+                <button class="options-tab" data-tab="controls" data-i18n="tab_controls">조작</button>
+                <button class="options-tab" data-tab="sound" data-i18n="tab_sound">사운드</button>
+            </div>
+
+            <!-- ── General Tab ── -->
+            <div class="options-tab-panel active" id="tab-general">
+                <div class="options-section">
+                    <h3 data-i18n="opt_theme">테마 변경</h3>
+                    <div class="audio-control-row">
+                        <select id="theme-select" class="custom-input" style="width: 100%;">
+                            <option value="dark" data-i18n="theme_dark">다크 모드</option>
+                            <option value="light" data-i18n="theme_light">라이트 모드</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3 data-i18n="opt_language">언어 변경</h3>
+                    <div class="audio-control-row">
+                        <select id="language-select" class="custom-input" style="width: 100%;">
+                            <option value="KR">한국</option>
+                            <option value="US">USA</option>
+                            <option value="JP">日本</option>
+                            <option value="CN">中国</option>
+                            <option value="GB">UK</option>
+                            <option value="DE">Deutschland</option>
+                            <option value="FR">France</option>
+                            <option value="IT">Italia</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                            <option value="BR">Brasil</option>
+                            <option value="IN">भारत</option>
+                            <option value="RU">Россия</option>
+                            <option value="MX">México</option>
+                            <option value="ES">España</option>
+                            <option value="ID">Indonesia</option>
+                            <option value="NL">Nederland</option>
+                            <option value="SA">السعودية</option>
+                            <option value="TR">Türkiye</option>
+                            <option value="CH">Schweiz</option>
+                            <option value="SE">Sverige</option>
+                            <option value="PL">Polska</option>
+                            <option value="AR">Argentina</option>
+                            <option value="BE">België</option>
+                            <option value="TH">ไทย</option>
+                            <option value="AT">Österreich</option>
+                            <option value="IR">ایران</option>
+                            <option value="AE">الإمارات</option>
+                            <option value="NO">Norge</option>
+                            <option value="IL">ישראל</option>
+                            <option value="IE">Éire</option>
+                            <option value="PH">Pilipinas</option>
+                        </select>
+                    </div>
+                </div>
+            </div><!-- /tab-general -->
+
+            <!-- ── Controls Tab ── -->
+            <div class="options-tab-panel" id="tab-controls">
+                <div class="options-section">
+                    <h3 data-i18n="opt_mode_change">모드 변경</h3>
+                    <!-- Hidden select keeps JS logic intact -->
+                    <select id="shape-select" style="display:none">
+                        <option value="default">default</option>
+                        <option value="swapped">swapped</option>
+                    </select>
+                    <div class="mode-toggle-group">
+                        <button class="mode-toggle-btn active" id="mode-btn-default" data-mode="default"
+                            data-i18n="shape_default">왼손: 네모 / 오른손: 세모</button>
+                        <button class="mode-toggle-btn" id="mode-btn-swapped" data-mode="swapped"
+                            data-i18n="shape_swapped">왼손: 세모 / 오른손: 네모</button>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3 data-i18n="opt_key_bind">키 변경</h3>
+                    <div class="key-bind-group">
+                        <div class="hand-keys" id="opt-left-container"></div>
+                        <div class="hand-keys" id="opt-right-container"></div>
+                    </div>
+                </div>
+            </div><!-- /tab-controls -->
+
+            <!-- ── Sound Tab ── -->
+            <div class="options-tab-panel" id="tab-sound">
+                <div class="options-section">
+                    <h3 data-i18n="opt_audio">음악</h3>
+                    <div class="audio-control-row">
+                        <label data-i18n="opt_master_vol">전체 볼륨</label>
+                        <input type="range" id="vol-master" min="0" max="1" step="0.01" value="1">
+                        <button id="mute-master" class="mute-btn">🔊</button>
+                    </div>
+                    <div class="audio-control-row">
+                        <label data-i18n="opt_sfx">효과음</label>
+                        <input type="range" id="vol-sfx" min="0" max="1" step="0.01" value="1">
+                        <button id="mute-sfx" class="mute-btn">🔊</button>
+                    </div>
+                    <div class="audio-control-row">
+                        <label data-i18n="opt_bgm">배경음악</label>
+                        <input type="range" id="vol-bgm" min="0" max="1" step="0.01" value="0.5">
+                        <button id="mute-bgm" class="mute-btn">🔊</button>
+                    </div>
+                    <div class="audio-control-row">
+                        <label>BGM Track</label>
+                        <select id="bgm-track-select" style="flex:1; min-width:0; background:var(--input-bg,#1a1a2e); color:var(--text,#e8e8ff); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:6px 10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                            <!-- populated dynamically from bgm/manifest.json -->
+                        </select>
+                    </div>
+                </div>
+            </div><!-- /tab-sound -->
+
+            <!-- Save Button -->
+            <div style="text-align: center; margin-top: 16px; flex-shrink: 0;">
+                <button id="save-options-btn" class="glow-on-hover" style="width: 150px; height: 40px; font-size: 1rem;"
+                    data-i18n="opt_save_close">저장 및 닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
